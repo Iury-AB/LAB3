@@ -38,6 +38,12 @@
 #define SWITCH2R 24
 #define SWITCH2L 22
 
+// =================================
+// SENSORES DE REFLEXÃO
+// ==================================
+#define TCRT_ESQ A0
+#define TCRT_DIR A1
+
 // ================================
 // CONFIGURAÇÕES
 // ================================

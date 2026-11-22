@@ -16,9 +16,11 @@ void configurarControle() {
 
   pinMode(SWITCH1R, INPUT_PULLUP);
   pinMode(SWITCH1L, INPUT_PULLUP);
-
   pinMode(SWITCH2R, INPUT_PULLUP);
   pinMode(SWITCH2L, INPUT_PULLUP);
+
+  pinMode(TCRT_ESQ, INPUT);
+  pinMode(TCRT_DIR, INPUT);
 
   pinMode(XSHUT_ESQ, OUTPUT);
   pinMode(XSHUT_DIR, OUTPUT);
