@@ -10,7 +10,10 @@
 void executarEstrategia1() {
 
   // Estratégia ainda não implementada.
-
+  int distanciaEsq;
+  int distanciaDir;
+  lerDistancias(distanciaEsq, distanciaDir);
+  delay(500);
 }
 
 

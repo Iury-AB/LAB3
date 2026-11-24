@@ -49,7 +49,7 @@
 // ================================
 
 #define DISTANCIA_LIMITE 200
-#define VELOCIDADE_MAXIMA 255
+#define VELOCIDADE_MAXIMA 80
 
 #define TEMPO_ESPERA 5000
 #define DEBOUNCE 50
@@ -70,5 +70,10 @@ void girarDireita(int velocidade) ;
 int verificaEstrategia();
 void imprimirSwitches() ;
 bool lerDistancias(int &distanciaEsq, int &distanciaDir);
+void motorEsqVelocidade(int velocidade);
+void motorDirVelocidade(int velocidade);
+void moverDiferencial(int velocidadeEsq, int velocidadeDir);
+void girarNoEixoHorario(int velocidade);
+void girarNoEixoAntiHorario(int velocidade);
 
 #endif

@@ -223,3 +223,49 @@ bool lerDistancias(int &distanciaEsq, int &distanciaDir) {
 
   return true;
 }
+
+// Velocidade positiva = frente
+// Velocidade negativa = ré
+// Velocidade zero = parado
+
+void motorEsqVelocidade(int velocidade) {
+    velocidade = constrain(velocidade, -255, 255);
+
+    if (velocidade > 0) {
+        motorEsqFrente(velocidade);
+    } 
+    else if (velocidade < 0) {
+        motorEsqTras(-velocidade);
+    } 
+    else {
+        pararMotorEsq();
+    }
+}
+
+void motorDirVelocidade(int velocidade) {
+    velocidade = constrain(velocidade, -255, 255);
+
+    if (velocidade > 0) {
+        motorDirFrente(velocidade);
+    } 
+    else if (velocidade < 0) {
+        motorDirTras(-velocidade);
+    } 
+    else {
+        pararMotorDir();
+    }
+}
+
+void moverDiferencial(int velocidadeEsq, int velocidadeDir) {
+    motorEsqVelocidade(velocidadeEsq);
+    motorDirVelocidade(velocidadeDir);
+}
+
+void girarNoEixoHorario(int velocidade) {
+    moverDiferencial(velocidade, -velocidade);
+}
+
+void girarNoEixoAntiHorario(int velocidade) {
+    moverDiferencial(-velocidade, velocidade);
+}
+
