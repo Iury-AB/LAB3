@@ -49,10 +49,12 @@
 // ================================
 
 #define DISTANCIA_LIMITE 200
-#define VELOCIDADE_MAXIMA 80
+#define VELOCIDADE_MAXIMA 120
 
 #define TEMPO_ESPERA 5000
 #define DEBOUNCE 50
+
+#define VELOCIDADE_BUSCA 80
 
 void configurarControle() ;
 bool inicializarSensores();

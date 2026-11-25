@@ -9,21 +9,24 @@
 // BUSCA ALEATÓRIA E APROXIMAÇÃO
 // ================================
 
-#define DISTANCIA_DETECCAO 700
-#define DISTANCIA_SEGURANCA 50
+#define DISTANCIA_DETECCAO 300
 
-#define VELOCIDADE_BUSCA 100
-#define VELOCIDADE_APROXIMACAO 120
+
+#define VELOCIDADE_APROXIMACAO 80
 
 #define TEMPO_GIRO_MIN 1000
 #define TEMPO_GIRO_MAX 3000
 
 #define TEMPO_INVESTIDA 3000
 
+#define LIMIAR_BRANCO 200
+#define TEMPO_RECUO 1000
+
 enum EstadoEstrategia2 {
   GIRANDO,
   AVANCANDO,
-  APROXIMANDO
+  APROXIMANDO,
+  RECUANDO
 };
 
 void executarEstrategia2() {
@@ -31,7 +34,6 @@ void executarEstrategia2() {
   static EstadoEstrategia2 estado = GIRANDO;
 
   static unsigned long instanteEstado = 0;
-
   static unsigned long duracaoGiro = 0;
 
   static bool inicializada = false;
@@ -47,7 +49,7 @@ void executarEstrategia2() {
 
   if (!inicializada) {
 
-    randomSeed(analogRead(A0));
+    randomSeed(analogRead(A2));
 
     duracaoGiro = random(
       TEMPO_GIRO_MIN,
@@ -62,17 +64,75 @@ void executarEstrategia2() {
 
     instanteEstado = agora;
     inicializada = true;
+  }
+
+  // ================================
+  // LEITURA DOS SENSORES TCRT5000
+  // ================================
+
+  int reflexaoEsq = analogRead(TCRT_ESQ);
+  int reflexaoDir = analogRead(TCRT_DIR);
+
+  bool detectouBranco =
+    reflexaoEsq < LIMIAR_BRANCO ||
+    reflexaoDir < LIMIAR_BRANCO;
+
+  // ================================
+  // DETECÇÃO DE BRANCO
+  // ================================
+
+  if (estado != RECUANDO && detectouBranco) {
+
+    estado = RECUANDO;
+    instanteEstado = agora;
+
+    Serial.println("Branco detectado! Recuando.");
 
   }
 
   // ================================
-  // LEITURA DOS SENSORES
+  // ESTADO DE RECUO
+  // ================================
+
+  if (estado == RECUANDO) {
+
+    if (agora - instanteEstado < TEMPO_RECUO) {
+
+      moverTras(VELOCIDADE_MAXIMA);
+
+    } else {
+
+      pararMotores();
+
+      // Reinicia a busca
+      duracaoGiro = random(
+        TEMPO_GIRO_MIN,
+        TEMPO_GIRO_MAX + 1
+      );
+
+      if (random(0, 2) == 0) {
+        girarEsquerda(VELOCIDADE_BUSCA);
+      } else {
+        girarDireita(VELOCIDADE_BUSCA);
+      }
+
+      estado = GIRANDO;
+      instanteEstado = agora;
+
+      Serial.println("Recuo concluido. Retomando busca.");
+
+    }
+
+    return;
+  }
+
+  // ================================
+  // LEITURA DOS VL53L0X
   // ================================
 
   if (!lerDistancias(distanciaEsq, distanciaDir)) {
     pararMotores();
     return;
-
   }
 
   int menorDistancia = min(
@@ -90,7 +150,6 @@ void executarEstrategia2() {
     estado = APROXIMANDO;
 
     Serial.println("Alvo detectado!");
-
   }
 
   // ================================
@@ -99,13 +158,7 @@ void executarEstrategia2() {
 
   switch (estado) {
 
-    // ----------------------------
-    // BUSCA: GIRO
-    // ----------------------------
-
     case GIRANDO:
-
-      Serial.println("GIRANDO");
 
       if (agora - instanteEstado >= duracaoGiro) {
 
@@ -115,23 +168,16 @@ void executarEstrategia2() {
         instanteEstado = agora;
 
         Serial.println("Busca: avancando");
-
       }
 
       break;
 
-    // ----------------------------
-    // BUSCA: AVANÇO
-    // ----------------------------
-
     case AVANCANDO:
-      Serial.println("AVANCANDO");
 
       if (agora - instanteEstado >= TEMPO_INVESTIDA) {
 
         pararMotores();
 
-        // Escolhe um novo giro
         duracaoGiro = random(
           TEMPO_GIRO_MIN,
           TEMPO_GIRO_MAX + 1
@@ -139,44 +185,28 @@ void executarEstrategia2() {
 
         if (random(0, 2) == 0) {
           girarEsquerda(VELOCIDADE_BUSCA);
-          Serial.println("Girando para esquerda");
         } else {
           girarDireita(VELOCIDADE_BUSCA);
-          Serial.println("Girando para direita");
         }
 
         estado = GIRANDO;
         instanteEstado = agora;
 
         Serial.println("Busca: novo giro");
-
       }
 
       break;
 
-    // ----------------------------
-    // APROXIMAÇÃO CONTROLADA
-    // ----------------------------
-
     case APROXIMANDO:
-      Serial.println("APROXIMANDO");
 
-      if (menorDistancia <= DISTANCIA_SEGURANCA) {
-
-        pararMotores();
-
-        Serial.println("Distancia de seguranca atingida!");
-
-      } else if (menorDistancia <= DISTANCIA_DETECCAO) {
+      if (menorDistancia <= DISTANCIA_DETECCAO) {
 
         moverFrente(VELOCIDADE_APROXIMACAO);
 
       } else {
-        Serial.println(menorDistancia);
-        Serial.println("GIRANDO");
+
         pararMotores();
 
-        // Escolhe um novo giro
         duracaoGiro = random(
           TEMPO_GIRO_MIN,
           TEMPO_GIRO_MAX + 1
@@ -184,22 +214,20 @@ void executarEstrategia2() {
 
         if (random(0, 2) == 0) {
           girarEsquerda(VELOCIDADE_BUSCA);
-          Serial.println("Girando para esquerda");
         } else {
           girarDireita(VELOCIDADE_BUSCA);
-          Serial.println("Girando para direita");
         }
 
         estado = GIRANDO;
         instanteEstado = agora;
-
       }
 
       break;
 
+    case RECUANDO:
+      // Tratado anteriormente.
+      break;
   }
-
 }
-
 
 #endif

@@ -175,6 +175,5 @@ void loop() {
 
   executarEstrategiaSelecionada();
 
-  delay(100);
 
 }
